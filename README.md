@@ -17,6 +17,7 @@ pip install adktools
 - **Domain error models**: Create rich, domain-specific error types that automatically convert to standard responses
 - **Tool discovery**: Automatically find all tool functions in your modules
 - **Response utilities**: Standardized success and error response generation
+- **MCP integration**: Utilities for working with Model Context Protocol (MCP) servers
 - **Type safety**: Comprehensive typing support for better IDE integration
 
 ## Quick Start
@@ -83,28 +84,82 @@ def get_current_time(timezone: str) -> Union[TimeResult, InvalidTimezoneError]:
         raise RuntimeError(f"Error getting time: {str(e)}")
 ```
 
-### Tool Discovery
+### Using MCP Tools
 
 ```python
-from adktools import discover_adk_tools
-from google.adk.agents import Agent
+import asyncio
+from adktools.mcp import get_mcp_tools
+from google.adk.agents.llm_agent import LlmAgent
 
-# Import your modules containing tools
-import myagent.weather_tools
-import myagent.time_tools
+async def main():
+    # Get tools from an MCP server
+    tools, exit_stack = await get_mcp_tools(
+        connection_type="stdio",
+        command="npx",
+        args=["-y", "@modelcontextprotocol/server-filesystem", "./data"]
+    )
+    
+    try:
+        # Create an agent with these tools
+        agent = LlmAgent(
+            model="gemini-2.0-flash",
+            name="filesystem_agent",
+            instruction="Help the user interact with files.",
+            tools=tools
+        )
+        
+        # Use the agent here
+        # ...
+    
+    finally:
+        # Clean up
+        await exit_stack.aclose()
 
-# Create an agent with auto-discovered tools
-agent = Agent(
-    name="my_assistant",
-    description="A helpful assistant",
-    tools=discover_adk_tools(myagent.weather_tools)
-)
+if __name__ == "__main__":
+    asyncio.run(main())
+```
 
-# Or discover tools across multiple modules
-all_tools = discover_adk_tools_in_modules([
-    myagent.weather_tools,
-    myagent.time_tools
-])
+### Using the MCP Agent Builder
+
+```python
+import asyncio
+from adktools.mcp import MCPAgentBuilder
+from adktools import adk_tool
+
+# Define a custom tool
+@adk_tool
+def analyze_text(text: str) -> dict:
+    word_count = len(text.split())
+    return {
+        "word_count": word_count,
+        "char_count": len(text)
+    }
+
+async def main():
+    # Create an MCP agent builder
+    builder = MCPAgentBuilder(
+        connection_type="stdio",
+        command="npx",
+        args=["-y", "@modelcontextprotocol/server-filesystem", "./data"]
+    )
+    
+    try:
+        # Build agent with our custom tool
+        agent = await builder.build_agent(
+            model="gemini-2.0-flash",
+            name="advanced_fs_agent",
+            instruction="Help the user with files and analyze text.",
+            additional_tools=[analyze_text]
+        )
+        
+        # Use the agent here
+        # ...
+    
+    finally:
+        await builder.cleanup()
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
 ## Documentation
@@ -127,49 +182,34 @@ def custom_tool(param: str):
     # Implementation...
 ```
 
-### Response Models
+### MCP Integration
 
-ADK Tools provides standardized response models:
-
-```python
-from adktools.models import ErrorResponse, SuccessResponse, DomainError
-
-# Success response
-success = SuccessResponse(result={"key": "value"})
-# Or without data
-empty_success = SuccessResponse()  # result is optional
-
-# Error response
-error = ErrorResponse(error_message="Something went wrong")
-
-# Domain-specific error base class
-class MyCustomError(DomainError):
-    error_type: Literal["custom_error"] = "custom_error"
-    error_message: str  # Matches ErrorResponse field name
-    additional_field: str
-```
-
-### Helper Functions
+ADK Tools provides utilities for working with Model Context Protocol (MCP) servers:
 
 ```python
-from adktools import success_response, error_response
+# Low-level MCP tools access
+from adktools.mcp import get_mcp_tools
 
-# Create success response dictionary
-response = success_response({"data": "value"})
-# {"status": "success", "result": {"data": "value"}}
+tools, exit_stack = await get_mcp_tools(
+    connection_type="stdio",
+    command="npx",
+    args=["-y", "@modelcontextprotocol/server-filesystem", "./data"]
+)
 
-# Create success response without data
-empty_response = success_response()
-# {"status": "success"}
+# Higher-level builder pattern
+from adktools.mcp import MCPAgentBuilder
 
-# Create error response dictionary
-response = error_response("Something went wrong")
-# {"status": "error", "error_message": "Something went wrong"}
+builder = MCPAgentBuilder(
+    connection_type="stdio",  # or "sse" for remote servers
+    command="npx",
+    args=["-y", "@modelcontextprotocol/server-filesystem", "./data"]
+)
+agent = await builder.build_agent()
 ```
 
 ## Response Format
 
-By default, ADK Tools uses the following standardized response formats:
+ADK Tools uses the following standardized response formats:
 
 ### Success Response
 ```json
