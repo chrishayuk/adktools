@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "adktools"
-version = "0.1.1"
+version = "0.1.2"
 description = "Utilities for building Agent Development Kit (ADK) applications"
 readme = "README.md"
 authors = [
@@ -23,7 +23,9 @@ classifiers = [
 ]
 keywords = ["adk", "google", "agent", "tools", "ai"]
 dependencies = [
+    "google-adk>=0.1.0",
     "pydantic>=2.0.0",
+    "pytest-asyncio>=0.26.0",
 ]
 requires-python = ">=3.9"
 
@@ -51,5 +53,6 @@ line_length = 88
 [dependency-groups]
 dev = [
     "black>=25.1.0",
+    "pytest-asyncio>=0.26.0",
     "pytest>=8.3.5",
 ]
