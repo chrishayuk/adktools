@@ -4,8 +4,7 @@ Response models for ADK tools.
 
 This module provides standardized response models used by ADK tools.
 """
-from typing import Any, Literal, Union
-
+from typing import Any, Literal, Union, Optional
 from pydantic import BaseModel, Field
 
 
@@ -21,7 +20,7 @@ class SuccessResponse(BaseModel):
     """Standard success response for ADK tools."""
 
     status: Literal["success"] = "success"
-    result: Any = Field(..., description="The result data")
+    result: Optional[Any] = Field(None, description="The result data")
 
 
 # Type that represents either success or error response
@@ -37,4 +36,4 @@ class DomainError(BaseModel):
     """
 
     error_type: str = Field(..., description="The type of error")
-    message: str = Field(..., description="A user-friendly error message")
+    error_message: str = Field(..., description="A user-friendly error message")
