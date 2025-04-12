@@ -1,0 +1,55 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "adktools"
+version = "0.1.0"
+description = "Utilities for building Agent Development Kit (ADK) applications"
+readme = "README.md"
+authors = [
+    {name = "chris hay", email = "chrishayuk@example.com"}
+]
+license = {text = "MIT"}
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+keywords = ["adk", "google", "agent", "tools", "ai"]
+dependencies = [
+    "pydantic>=2.0.0",
+]
+requires-python = ">=3.9"
+
+[project.urls]
+"Homepage" = "https://github.com/chrishayuk/adktools"
+"Bug Tracker" = "https://github.com/chrishayuk/adktools/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]  # Change from "." to "src"
+include = ["adktools*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_functions = "test_*"
+
+[tool.black]
+line-length = 88
+target-version = ["py311", "py312"]
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[dependency-groups]
+dev = [
+    "black>=25.1.0",
+    "pytest>=8.3.5",
+]
