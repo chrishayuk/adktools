@@ -19,8 +19,14 @@ def test_success_response_model():
     response = SuccessResponse(result={"key": "value"})
     assert response.status == "success"
     assert response.result["key"] == "value"
+    
+    # Test without result (optional field)
+    response = SuccessResponse()
+    assert response.status == "success"
+    assert response.result is None
 
     # Test serialization
+    response = SuccessResponse(result={"key": "value"})
     data = response.model_dump()
     assert data["status"] == "success"
     assert data["result"]["key"] == "value"
@@ -45,9 +51,9 @@ def test_domain_error_inheritance():
         error_type: Literal["custom"] = "custom"
         param: str
 
-    error = CustomError(param="test", message="Custom error")
+    error = CustomError(param="test", error_message="Custom error")
     assert error.error_type == "custom"
-    assert error.message == "Custom error"
+    assert error.error_message == "Custom error"
     assert error.param == "test"
 
 
@@ -63,6 +69,6 @@ def test_domain_error_validation():
         RequiredFieldsError(error_type="required")
 
     # This should work
-    error = RequiredFieldsError(param="test", message="Required error")
+    error = RequiredFieldsError(param="test", error_message="Required error")
     assert error.param == "test"
-    assert error.message == "Required error"
+    assert error.error_message == "Required error"
